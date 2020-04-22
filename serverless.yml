@@ -1,0 +1,40 @@
+service: serverless-puppeteer-layers
+
+provider:
+  name: aws
+  runtime: nodejs10.x
+  region: eu-central-1
+
+package:
+  exclude:
+    - layer/**
+    - chrome-aws-lambda/**
+    - node_modules/chrome-aws-lambda/**
+
+plugins:
+  - serverless-offline
+  - serverless-apigw-binary
+  - serverless-apigwy-binary
+
+custom:
+  apigwBinary:
+    types:
+      - '*/*'
+
+functions:
+  puppeteer-orchestrator:
+    handler: handler.index
+    timeout: 30
+    memorySize: 2048
+    events:
+      - http:
+          method: GET
+          path: /screenshot
+          contentHandling: CONVERT_TO_BINARY
+    layers:
+      - { Ref: ChromeLambdaLayer }
+
+layers:
+  chrome:
+    package:
+      artifact: layer/chrome.zip
